@@ -28,6 +28,10 @@ img {
   object-fit: cover;
 }
 
+.img-thumbnail:hover{
+  box-shadow: 0 4px 8px 0 rgba(63, 105, 241, 0.733);
+}
+
 .prev-next {
   position: absolute;
   top: 50%;

@@ -4,6 +4,9 @@ const galleryHeader = document.querySelector('.gallery-header');
 const searchBtn = document.getElementById('search-btn');
 const sliderBtn = document.getElementById('create-slider');
 const sliderContainer = document.getElementById('sliders');
+const searchInput = document.getElementById('search');
+const warning = document.getElementById('nature');
+///console.log(warning.classList);
 // selected image 
 let sliders = [];
 
@@ -15,37 +18,55 @@ const KEY = '15674931-a9d714b6e9d654524df198e00&q';
 
 // show images 
 const showImages = (images) => {
-  imagesArea.style.display = 'block';
   gallery.innerHTML = '';
   // show gallery title
-  galleryHeader.style.display = 'flex';
-  images.forEach(image => {
-    let div = document.createElement('div');
-    div.className = 'col-lg-3 col-md-4 col-xs-6 img-item mb-2';
-    div.innerHTML = ` <img class="img-fluid img-thumbnail" onclick=selectItem(event,"${image.webformatURL}") src="${image.webformatURL}" alt="${image.tags}">`;
-    gallery.appendChild(div)
-  })
-
+  //console.log(images.length);
+  if (images.length == 0) {
+    warning.classList.remove('d-none');
+    toggleSpinner(false);
+  }
+  else {
+    imagesArea.style.display = 'block';
+    galleryHeader.style.display = 'flex';
+    images.forEach(image => {
+      let div = document.createElement('div');
+      div.className = 'col-lg-3 col-md-4 col-xs-6 img-item mb-2';
+      div.innerHTML = ` <img class="img-fluid img-thumbnail" onclick=selectItem(event,"${image.webformatURL}") src="${image.webformatURL}" alt="${image.tags}">`;
+      gallery.appendChild(div)
+    })
+    toggleSpinner(false);
+  }
 }
 
 const getImages = (query) => {
+  imagesArea.style.display = 'none';
+  warning.classList.add('d-none');
+  toggleSpinner(true);
   fetch(`https://pixabay.com/api/?key=${KEY}=${query}&image_type=photo&pretty=true`)
     .then(response => response.json())
-    .then(data => showImages(data.hitS))
+    .then(data => showImages(data.hits))
     .catch(err => console.log(err))
 }
 
 let slideIndex = 0;
 const selectItem = (event, img) => {
   let element = event.target;
+  //console.log(element);
   element.classList.add('added');
- 
+
   let item = sliders.indexOf(img);
+  //console.log(item)
   if (item === -1) {
     sliders.push(img);
+    //console.log(sliders.indexOf(img));
   } else {
-    alert('Hey, Already added !')
+    item = sliders.indexOf(img);
+    sliders.splice(item, 1);
+    element.classList.remove('added');
+
+    //alert('Hey, Already added !')
   }
+  //console.log(sliders.length);
 }
 var timer
 const createSlider = () => {
@@ -67,7 +88,16 @@ const createSlider = () => {
   document.querySelector('.main').style.display = 'block';
   // hide image aria
   imagesArea.style.display = 'none';
-  const duration = document.getElementById('duration').value || 1000;
+
+  let duration = document.getElementById('doration').value;
+  if (duration == null) {
+    duration = 1000;
+  }
+  else if (duration < 0) {
+    alert("Image will change after every nth second in the slide so Time cannot be negative , taking time as positive");
+    duration = duration * -1;
+  }
+  duration = duration || 1000;
   sliders.forEach(slide => {
     let item = document.createElement('div')
     item.className = "slider-item";
@@ -109,14 +139,43 @@ const changeSlide = (index) => {
   items[index].style.display = "block"
 }
 
+
+//for input and enter
+
+searchInput.addEventListener("keyup", function (event) {
+
+  //console.log(event);
+  if (event.key == "Enter") {
+    document.querySelector('.main').style.display = 'none';
+    clearInterval(timer);
+    getImages(searchInput.value)
+    sliders.length = 0;
+  }
+
+});
+
+//for saerch button
 searchBtn.addEventListener('click', function () {
   document.querySelector('.main').style.display = 'none';
   clearInterval(timer);
-  const search = document.getElementById('search');
-  getImages(search.value)
+  //const search = document.getElementById('search');
+  getImages(searchInput.value)
   sliders.length = 0;
 })
 
 sliderBtn.addEventListener('click', function () {
   createSlider()
 })
+
+
+const toggleSpinner = (check) => {
+  const spinner = document.getElementById('spinner');
+  if (check) {
+    spinner.classList.add('d-flex');
+  }
+  else {
+    spinner.classList.remove('d-flex');
+  }
+
+
+}
